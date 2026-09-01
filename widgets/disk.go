@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
-	psDisk "github.com/shirou/gopsutil/disk"
+	psDisk "github.com/shirou/gopsutil/v3/disk"
 
-	ui "github.com/xxxserxxx/gotop/v4/termui"
-	"github.com/xxxserxxx/gotop/v4/utils"
+	"github.com/skycoin/skywire/third_party/VictoriaMetrics/metrics"
+	ui "github.com/0magnet/gotop/v4/termui"
+	"github.com/0magnet/gotop/v4/utils"
 )
 
 type Partition struct {
@@ -74,7 +74,7 @@ func (disk *DiskWidget) EnableMetric() {
 func (disk *DiskWidget) update() {
 	partitions, err := psDisk.Partitions(false)
 	if err != nil {
-		log.Printf(tr.Value("error.setup", "disk-partitions", err.Error()))
+		log.Print(tr.Value("error.setup", "disk-partitions", err.Error()))
 		return
 	}
 
@@ -119,7 +119,7 @@ func (disk *DiskWidget) update() {
 	for _, partition := range disk.Partitions {
 		usage, err := psDisk.Usage(partition.MountPoint)
 		if err != nil {
-			log.Printf(tr.Value("error.recovfetch", "partition-"+partition.MountPoint+"-usage", err.Error()))
+			log.Print(tr.Value("error.recovfetch", "partition-"+partition.MountPoint+"-usage", err.Error()))
 			continue
 		}
 		partition.UsedPercent = uint32(usage.UsedPercent + 0.5)
@@ -128,7 +128,7 @@ func (disk *DiskWidget) update() {
 
 		ioCounters, err := psDisk.IOCounters(partition.Device)
 		if err != nil {
-			log.Printf(tr.Value("error.recovfetch", "partition-"+partition.Device+"-rw", err.Error()))
+			log.Print(tr.Value("error.recovfetch", "partition-"+partition.Device+"-rw", err.Error()))
 			continue
 		}
 		ioCounter := ioCounters[strings.Replace(partition.Device, "/dev/", "", -1)]

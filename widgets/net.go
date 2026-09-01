@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
-	psNet "github.com/shirou/gopsutil/net"
+	psNet "github.com/shirou/gopsutil/v3/net"
 
-	ui "github.com/xxxserxxx/gotop/v4/termui"
-	"github.com/xxxserxxx/gotop/v4/utils"
+	"github.com/skycoin/skywire/third_party/VictoriaMetrics/metrics"
+	ui "github.com/0magnet/gotop/v4/termui"
+	"github.com/0magnet/gotop/v4/utils"
 )
 
 const (
@@ -34,7 +34,7 @@ type NetWidget struct {
 }
 
 // TODO: state:merge #169 % option for network use (jrswab/networkPercentage)
-func NewNetWidget(netInterface string) *NetWidget {
+func NewNetWidget(updateInterval time.Duration, netInterface string) *NetWidget {
 	recvSparkline := ui.NewSparkline()
 	recvSparkline.Data = []int{}
 
@@ -44,7 +44,7 @@ func NewNetWidget(netInterface string) *NetWidget {
 	spark := ui.NewSparklineGroup(recvSparkline, sentSparkline)
 	self := &NetWidget{
 		SparklineGroup: spark,
-		updateInterval: time.Second,
+		updateInterval: updateInterval,
 		NetInterface:   strings.Split(netInterface, ","),
 	}
 	self.Title = tr.Value("widget.label.net")
@@ -80,7 +80,7 @@ func (net *NetWidget) update() {
 	var totalBytesRecv uint64
 	var totalBytesSent uint64
 	interfaceMap := make(map[string]bool)
-	// Default behaviour
+	// Default behavior
 	interfaceMap[NetInterfaceAll] = true
 	interfaceMap[NetInterfaceVpn] = false
 	// Build a map with wanted status for each interfaces.
@@ -121,7 +121,7 @@ func (net *NetWidget) update() {
 		}
 		if int(recentBytesSent) < 0 {
 			v := fmt.Sprintf("%d", recentBytesSent)
-			log.Printf(tr.Value("widget.net.err.negvalsent", v))
+			log.Print(tr.Value("widget.net.err.negvalsent", v))
 			// recover from error
 			recentBytesSent = 0
 		}

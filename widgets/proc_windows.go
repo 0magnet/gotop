@@ -1,17 +1,18 @@
 package widgets
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
 
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 func getProcs() ([]Proc, error) {
 	psProcs, err := process.Processes()
 	if err != nil {
-		return nil, fmt.Errorf(tr.Value("widget.proc.err.gopsutil", err.Error()))
+		return nil, errors.New(tr.Value("widget.proc.err.gopsutil", err.Error()))
 	}
 
 	procs := make([]Proc, len(psProcs))

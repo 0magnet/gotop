@@ -5,12 +5,11 @@ import (
 	"sort"
 	"strings"
 
+	ui "github.com/gizak/termui/v3"
 	"github.com/xxxserxxx/lingo/v2"
 
-	"github.com/xxxserxxx/gotop/v4"
-	"github.com/xxxserxxx/gotop/v4/widgets"
-
-	ui "github.com/gizak/termui/v3"
+	"github.com/0magnet/gotop/v4"
+	"github.com/0magnet/gotop/v4/widgets"
 )
 
 type layout struct {
@@ -37,13 +36,12 @@ func Layout(wl layout, c gotop.Config) (*MyGrid, error) {
 	tr = c.Tr
 	rowDefs := wl.Rows
 	uiRows := make([][]interface{}, 0)
-	numRows := countNumRows(wl.Rows)
 	var uiRow []interface{}
 	maxHeight := 0
 	heights := make([]int, 0)
 	var h int
 	for len(rowDefs) > 0 {
-		h, uiRow, rowDefs = processRow(c, numRows, rowDefs)
+		h, uiRow, rowDefs = processRow(c, rowDefs)
 		maxHeight += h
 		uiRows = append(uiRows, uiRow)
 		heights = append(heights, h)
@@ -83,7 +81,7 @@ func Layout(wl layout, c gotop.Config) (*MyGrid, error) {
 // if there's a row span widget in the row; in this case, it'll consume as many
 // rows as the largest row span object in the row, and produce an uber-row
 // containing all that stuff. It returns a slice without the consumed elements.
-func processRow(c gotop.Config, numRows int, rowDefs [][]widgetRule) (int, []interface{}, [][]widgetRule) {
+func processRow(c gotop.Config, rowDefs [][]widgetRule) (int, []interface{}, [][]widgetRule) {
 	// Recursive function #3.  See the comment in deepFindProc.
 	if len(rowDefs) < 1 {
 		return 0, nil, [][]widgetRule{}
@@ -166,27 +164,56 @@ func makeWidget(c gotop.Config, widRule widgetRule) interface{} {
 	var w Metric
 	switch widRule.Widget {
 	case "disk":
-		dw := widgets.NewDiskWidget()
-		w = dw
+		if c.Multiload {
+			// multiload-ng style: aggregate disk read/write throughput graph
+			// instead of the per-partition usage table.
+			d := widgets.NewDiskIOWidget(c.UpdateInterval)
+			if len(c.Colorscheme.Sparklines) > 0 {
+				d.Lines[0].LineColor = ui.Color(c.Colorscheme.Sparklines[0])
+			}
+			d.Lines[0].TitleColor = ui.Color(c.Colorscheme.BorderLabel)
+			if len(c.Colorscheme.Sparklines) > 1 {
+				d.Lines[1].LineColor = ui.Color(c.Colorscheme.Sparklines[1])
+			}
+			d.Lines[1].TitleColor = ui.Color(c.Colorscheme.BorderLabel)
+			w = d
+		} else {
+			dw := widgets.NewDiskWidget()
+			w = dw
+		}
 	case "cpu":
-		cpu := widgets.NewCPUWidget(c.UpdateInterval, c.GraphHorizontalScale, c.AverageLoad, c.PercpuLoad)
+		cpu := widgets.NewCPUWidget(c.UpdateInterval, c.GraphHorizontalScale, c.AverageLoad, c.PercpuLoad, c.Multiload)
 		assignColors(cpu.Data, c.Colorscheme.CPULines, cpu.LineColors)
 		w = cpu
 	case "mem":
-		m := widgets.NewMemWidget(c.UpdateInterval, c.GraphHorizontalScale)
-		assignColors(m.Data, c.Colorscheme.MemLines, m.LineColors)
+		m := widgets.NewMemWidget(c.UpdateInterval, c.GraphHorizontalScale, c.Multiload)
+		if c.Multiload {
+			// Color the used/buff/cache/total components as shades of green
+			// (multiload-ng's RAM convention), regardless of colorscheme.
+			m.AssignShades(widgets.MultiloadMemBase)
+		} else {
+			assignColors(m.Data, c.Colorscheme.MemLines, m.LineColors)
+		}
 		w = m
 	case "batt":
 		b := widgets.NewBatteryWidget(c.GraphHorizontalScale)
 		assignColors(b.Data, c.Colorscheme.BattLines, b.LineColors)
 		w = b
 	case "temp":
-		t := widgets.NewTempWidget(c.TempScale, c.Temps)
-		t.TempLowColor = ui.Color(c.Colorscheme.TempLow)
-		t.TempHighColor = ui.Color(c.Colorscheme.TempHigh)
-		w = t
+		if c.Multiload {
+			// multiload-ng style: plot each sensor as a line over time instead
+			// of the text readout.
+			tg := widgets.NewTempGraphWidget(c.UpdateInterval, c.TempScale, c.Temps, c.GraphHorizontalScale)
+			assignColors(tg.Data, c.Colorscheme.CPULines, tg.LineColors)
+			w = tg
+		} else {
+			t := widgets.NewTempWidget(c.TempScale, c.Temps)
+			t.TempLowColor = ui.Color(c.Colorscheme.TempLow)
+			t.TempHighColor = ui.Color(c.Colorscheme.TempHigh)
+			w = t
+		}
 	case "net":
-		n := widgets.NewNetWidget(c.NetInterface)
+		n := widgets.NewNetWidget(c.UpdateInterval, c.NetInterface)
 		n.Lines[0].LineColor = ui.Color(c.Colorscheme.Sparklines[0])
 		n.Lines[0].TitleColor = ui.Color(c.Colorscheme.BorderLabel)
 		n.Lines[1].LineColor = ui.Color(c.Colorscheme.Sparklines[1])
@@ -202,7 +229,7 @@ func makeWidget(c gotop.Config, widRule widgetRule) interface{} {
 		b.BarColor = ui.Color(c.Colorscheme.ProcCursor)
 		w = b
 	default:
-		log.Printf(tr.Value("layout.error.widget", widRule.Widget, strings.Join(widgetNames, ",")))
+		log.Print(tr.Value("layout.error.widget", widRule.Widget, strings.Join(widgetNames, ",")))
 		return ui.NewBlock()
 	}
 	if c.ExportPort != "" {
@@ -227,26 +254,6 @@ func assignColors(data map[string][]float64, colors []int, assign map[string]ui.
 		assign[v] = ui.Color(colors[i])
 		i++
 	}
-}
-
-func countNumRows(rs [][]widgetRule) int {
-	var ttl int
-	for len(rs) > 0 {
-		ttl++
-		line := rs[0]
-		h := 1
-		for _, c := range line {
-			if c.Height > h {
-				h = c.Height
-			}
-		}
-		if h < len(rs) {
-			rs = rs[h:]
-		} else {
-			break
-		}
-	}
-	return ttl
 }
 
 // Counts the height of the window so rows can be proportionally scaled.

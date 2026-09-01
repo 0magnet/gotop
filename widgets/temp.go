@@ -6,18 +6,18 @@ import (
 	"sort"
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
 	ui "github.com/gizak/termui/v3"
 
-	"github.com/xxxserxxx/gotop/v4/devices"
-	"github.com/xxxserxxx/gotop/v4/utils"
+	"github.com/skycoin/skywire/third_party/VictoriaMetrics/metrics"
+	"github.com/0magnet/gotop/v4/devices"
+	"github.com/0magnet/gotop/v4/utils"
 )
 
 type TempScale rune
 
 const (
 	Celsius    TempScale = 'C'
-	Fahrenheit           = 'F'
+	Fahrenheit TempScale = 'F'
 )
 
 type TempWidget struct {
@@ -69,7 +69,7 @@ func NewTempWidget(tempScale TempScale, filter []string) *TempWidget {
 
 func (temp *TempWidget) EnableMetric() {
 	temp.temps = make(map[string]float64)
-	for k, _ := range temp.Data {
+	for k := range temp.Data {
 		kc := k
 		metrics.NewGauge(makeName("temp", k), func() float64 {
 			return float64(temp.Data[kc])

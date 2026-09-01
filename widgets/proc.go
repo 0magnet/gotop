@@ -10,9 +10,10 @@ import (
 	"time"
 
 	tui "github.com/gizak/termui/v3"
-	"github.com/xxxserxxx/gotop/v4/devices"
-	ui "github.com/xxxserxxx/gotop/v4/termui"
-	"github.com/xxxserxxx/gotop/v4/utils"
+
+	"github.com/0magnet/gotop/v4/devices"
+	ui "github.com/0magnet/gotop/v4/termui"
+	"github.com/0magnet/gotop/v4/utils"
 )
 
 const (
@@ -23,9 +24,9 @@ type ProcSortMethod string
 
 const (
 	ProcSortCPU ProcSortMethod = "c"
-	ProcSortMem                = "m"
-	ProcSortPid                = "p"
-	ProcSortCmd                = "n"
+	ProcSortMem ProcSortMethod = "m"
+	ProcSortPid ProcSortMethod = "p"
+	ProcSortCmd ProcSortMethod = "n"
 )
 
 type Proc struct {
@@ -137,7 +138,7 @@ func (proc *ProcWidget) filterProcs(procs []Proc) []Proc {
 func (proc *ProcWidget) update() {
 	procs, err := getProcs()
 	if err != nil {
-		log.Printf(tr.Value("widget.proc.error.retrieve", err.Error()))
+		log.Print(tr.Value("widget.proc.error.retrieve", err.Error()))
 		return
 	}
 
@@ -206,7 +207,7 @@ func (proc *ProcWidget) convertProcsToTableRows() {
 	strings := make([][]string, len(*procs))
 	for i := range *procs {
 		strings[i] = make([]string, 4)
-		strings[i][0] = strconv.Itoa(int((*procs)[i].Pid))
+		strings[i][0] = strconv.Itoa((*procs)[i].Pid)
 		if proc.showGroupedProcs {
 			strings[i][1] = (*procs)[i].CommandName
 		} else {
@@ -247,9 +248,9 @@ func (proc *ProcWidget) KillProc(sigName string) {
 	if proc.UniqueCol == 1 {
 		command = "pkill"
 	}
-	cmd := exec.Command(command, "--signal", sigName, proc.Rows[proc.SelectedRow][proc.UniqueCol])
-	cmd.Start()
-	cmd.Wait()
+	cmd := exec.Command(command, "--signal", sigName, proc.Rows[proc.SelectedRow][proc.UniqueCol]) //nolint:gosec // upstream code; safe under documented invariants
+	_ = cmd.Start()                                                                                //nolint:errcheck
+	_ = cmd.Wait()                                                                                 //nolint:errcheck
 }
 
 // groupProcs groupes a []Proc based on command name.

@@ -3,13 +3,12 @@ package widgets
 import (
 	"fmt"
 	"log"
-
 	"time"
 
-	"github.com/VictoriaMetrics/metrics"
 	"github.com/distatus/battery"
 
-	"github.com/xxxserxxx/gotop/v4/termui"
+	"github.com/skycoin/skywire/third_party/VictoriaMetrics/metrics"
+	"github.com/0magnet/gotop/v4/termui"
 )
 
 type BatteryGauge struct {
@@ -51,7 +50,7 @@ func (b *BatteryGauge) update() {
 		}
 	}
 	if len(bats) < 1 {
-		b.Label = fmt.Sprintf("N/A")
+		b.Label = "N/A"
 		return
 	}
 	mx := 0.0
@@ -67,12 +66,14 @@ func (b *BatteryGauge) update() {
 		if rate < bat.ChargeRate {
 			rate = bat.ChargeRate
 		}
-		if bat.State == battery.Charging {
+		// distatus/battery v0.11.0 changed State from an enum to a struct;
+		// the platform-agnostic state moved to State.Raw.
+		if bat.State.Raw == battery.Charging {
 			charging = "%d%% 🔌%s"
 		}
 	}
 	tn := (mx - cu) / rate
-	d, _ := time.ParseDuration(fmt.Sprintf("%fh", tn))
+	d, _ := time.ParseDuration(fmt.Sprintf("%fh", tn)) //nolint:errcheck
 	b.Percent = int((cu / mx) * 100.0)
 	b.Label = fmt.Sprintf(charging, b.Percent, d.Truncate(time.Minute))
 }

@@ -2,6 +2,7 @@ package devices
 
 import (
 	"log"
+
 	"github.com/xxxserxxx/lingo/v2"
 )
 
