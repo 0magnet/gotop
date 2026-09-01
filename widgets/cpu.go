@@ -7,7 +7,7 @@ import (
 	"github.com/VividCortex/ewma"
 	"github.com/gizak/termui/v3"
 
-	"github.com/skycoin/skywire/third_party/VictoriaMetrics/metrics"
+	"github.com/0magnet/metrics"
 	"github.com/0magnet/gotop/v4/devices"
 	ui "github.com/0magnet/gotop/v4/termui"
 )

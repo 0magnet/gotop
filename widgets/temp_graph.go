@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skycoin/skywire/third_party/VictoriaMetrics/metrics"
+	"github.com/0magnet/metrics"
 	"github.com/0magnet/gotop/v4/devices"
 	ui "github.com/0magnet/gotop/v4/termui"
 	"github.com/0magnet/gotop/v4/utils"
