@@ -1,5 +1,5 @@
-github.com/0magnet/metrics v1.44.1-0.20260901202122-8656b26f968b h1:l/c7X12CNncX2phqLeQPiNjxu2ou7spv3xslwloyPjE=
-github.com/0magnet/metrics v1.44.1-0.20260901202122-8656b26f968b/go.mod h1:SwLy2vvXGWJQxefDI4DncGdXJWIob5IGczxeFMtUIj8=
+github.com/0magnet/metrics v1.44.1-0.20261004194541-261721063b63 h1:XxaDWKe26asi8R5Kkrp1Ikg+UsWKuDMBwFTKWUTzBdM=
+github.com/0magnet/metrics v1.44.1-0.20261004194541-261721063b63/go.mod h1:SwLy2vvXGWJQxefDI4DncGdXJWIob5IGczxeFMtUIj8=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=

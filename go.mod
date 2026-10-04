@@ -1,7 +1,7 @@
 module github.com/0magnet/gotop/v4
 
 require (
-	github.com/0magnet/metrics v1.44.1-0.20260901202122-8656b26f968b
+	github.com/0magnet/metrics v1.44.1-0.20261004194541-261721063b63
 	github.com/VividCortex/ewma v1.2.0
 	github.com/anatol/smart.go v0.0.0-20260723175002-53b369c3973c
 	github.com/distatus/battery v0.11.0
