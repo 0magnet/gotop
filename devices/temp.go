@@ -12,6 +12,9 @@ func RegisterTemp(update func(map[string]int) map[string]error) {
 	tempUpdates = append(tempUpdates, update)
 }
 
+// ClearTemps removes every registered temperature device, as ClearCPU does.
+func ClearTemps() { tempUpdates = nil }
+
 func UpdateTemps(temps map[string]int) {
 	for _, f := range tempUpdates {
 		errs := f(temps)
